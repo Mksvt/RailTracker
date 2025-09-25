@@ -1,75 +1,68 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowRightLeft, MapPin, RefreshCw } from "lucide-react"
-import { getStations } from "../lib/api"
+import { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowRightLeft, RefreshCw, Search } from 'lucide-react';
+import { fetchStations } from '../lib/api'; 
 
 interface Station {
-  id: string
-  name: string
-  code: string
-  city: string
+  id: string;
+  name: string;
+  code: string;
+  city: string;
 }
 
 interface StationSelectorProps {
-  onStationsChange?: (from: string, to: string) => void
+  onSearch: (from: string, to: string) => void;
 }
 
-export function StationSelector({ onStationsChange }: StationSelectorProps) {
-  const [stations, setStations] = useState<Station[]>([])
-  const [fromStation, setFromStation] = useState("")
-  const [toStation, setToStation] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-
-  const fetchStations = async () => {
-    try {
-      setIsLoading(true)
-      const response = await getStations()
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch stations")
-      }
-
-      const data = await response.json()
-      setStations(data || [])
-
-      // Set default stations if available
-      if (data && data.length >= 2) {
-        const defaultFrom = data.find((s: Station) => s.name.includes("Київ")) || data[0]
-        const defaultTo = data.find((s: Station) => s.name.includes("Львів")) || data[1]
-        setFromStation(defaultFrom.id)
-        setToStation(defaultTo.id)
-      }
-    } catch (error) {
-      console.error("Error fetching stations:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+export function StationSelector({ onSearch }: StationSelectorProps) {
+  const [stations, setStations] = useState<Station[]>([]);
+  const [fromStation, setFromStation] = useState('');
+  const [toStation, setToStation] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStations()
-  }, [])
+    const loadStations = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchStations();
+        setStations(data || []);
 
-  useEffect(() => {
-    if (fromStation && toStation && onStationsChange) {
-      onStationsChange(fromStation, toStation)
-    }
-  }, [fromStation, toStation, onStationsChange])
+        if (data && data.length >= 2) {
+          const defaultFrom = data.find((s: Station) => s.name.includes('Київ')) || data[0];
+          const defaultTo = data.find((s: Station) => s.name.includes('Львів')) || data[1];
+          setFromStation(defaultFrom.id);
+          setToStation(defaultTo.id);
+
+          onSearch(defaultFrom.id, defaultTo.id);
+        }
+      } catch (err) {
+        console.error('Error fetching stations:', err);
+        setError('Не вдалося завантажити список станцій.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadStations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const swapStations = () => {
-    const temp = fromStation
-    setFromStation(toStation)
-    setToStation(temp)
-  }
+    const temp = fromStation;
+    setFromStation(toStation);
+    setToStation(temp);
+  };
 
-  const handleSearch = () => {
-    if (onStationsChange && fromStation && toStation) {
-      onStationsChange(fromStation, toStation)
+  const handleSearchClick = () => {
+    if (fromStation && toStation) {
+      onSearch(fromStation, toStation);
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -79,20 +72,29 @@ export function StationSelector({ onStationsChange }: StationSelectorProps) {
           <span className="ml-2 text-muted-foreground">Завантаження станцій...</span>
         </div>
       </Card>
-    )
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6 mb-6 bg-destructive/20 border-destructive/50 text-destructive-foreground">
+        <p>{error}</p>
+      </Card>
+    );
   }
 
   return (
     <Card className="p-6 mb-6 bg-card/50 backdrop-blur-sm border-border/50">
-      <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex flex-wrap items-end gap-4">
         <div className="flex-1 min-w-[200px]">
-          <label className="text-sm font-medium text-muted-foreground mb-2 block">Звідки</label>
+          <label htmlFor="from-station" className="block text-sm font-medium text-muted-foreground mb-2">Звідки</label>
           <select
+            id="from-station"
             value={fromStation}
             onChange={(e) => setFromStation(e.target.value)}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
           >
-            <option value="">Оберіть станцію</option>
+            <option value="" disabled>Оберіть станцію</option>
             {stations.map((station) => (
               <option key={station.id} value={station.id}>
                 {station.name} ({station.city})
@@ -105,20 +107,22 @@ export function StationSelector({ onStationsChange }: StationSelectorProps) {
           variant="outline"
           size="icon"
           onClick={swapStations}
-          className="mt-6 border-primary/20 hover:border-primary hover:bg-primary/10 bg-transparent"
           disabled={!fromStation || !toStation}
+          aria-label="Поміняти станції місцями"
+          className="bg-transparent border-primary/20 hover:border-primary hover:bg-primary/10"
         >
           <ArrowRightLeft className="h-4 w-4" />
         </Button>
 
         <div className="flex-1 min-w-[200px]">
-          <label className="text-sm font-medium text-muted-foreground mb-2 block">Куди</label>
+          <label htmlFor="to-station" className="block text-sm font-medium text-muted-foreground mb-2">Куди</label>
           <select
+            id="to-station"
             value={toStation}
             onChange={(e) => setToStation(e.target.value)}
-            className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-foreground focus:border-transparent focus:ring-2 focus:ring-primary"
           >
-            <option value="">Оберіть станцію</option>
+            <option value="" disabled>Оберіть станцію</option>
             {stations.map((station) => (
               <option key={station.id} value={station.id}>
                 {station.name} ({station.city})
@@ -128,14 +132,14 @@ export function StationSelector({ onStationsChange }: StationSelectorProps) {
         </div>
 
         <Button
-          className="mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
-          onClick={handleSearch}
+          onClick={handleSearchClick}
           disabled={!fromStation || !toStation}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          <MapPin className="h-4 w-4 mr-2" />
+          <Search className="h-4 w-4 mr-2" />
           Знайти поїзди
         </Button>
       </div>
     </Card>
-  )
+  );
 }

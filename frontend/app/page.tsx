@@ -1,26 +1,30 @@
-"use client"
+'use client';
 
-import { TrainScheduleHeader } from "@/components/train-schedule-header"
-import { TrainScheduleBoard } from "@/components/train-schedule-board"
-import { StationSelector } from "@/components/station-selector"
-import { LiveUpdates } from "@/components/live-updates"
-import { useState } from "react"
+import { useState } from 'react';
+import { StationSelector } from '@/components/station-selector';
+import { TrainScheduleBoard } from '@/components/train-schedule-board';
+import { TrainScheduleHeader } from '@/components/train-schedule-header';
+import { LiveUpdates } from '@/components/live-updates';
 
 export default function HomePage() {
-  const [selectedStations, setSelectedStations] = useState<{ from: string; to: string } | null>(null)
+  const [fromStationId, setFromStationId] = useState<string>('');
+  const [toStationId, setToStationId] = useState<string>('');
 
-  const handleStationsChange = (from: string, to: string) => {
-    setSelectedStations({ from, to })
-  }
+  const handleSearch = (from: string, to: string) => {
+    setFromStationId(from);
+    setToStationId(to);
+  };
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="container mx-auto max-w-7xl px-4 py-6">
         <TrainScheduleHeader />
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-4">
           <div className="lg:col-span-3">
-            <StationSelector onStationsChange={handleStationsChange} />
-            <TrainScheduleBoard />
+
+            <StationSelector onSearch={handleSearch} />
+
+            <TrainScheduleBoard fromStation={fromStationId} toStation={toStationId} />
           </div>
           <div className="lg:col-span-1">
             <LiveUpdates />
@@ -28,5 +32,5 @@ export default function HomePage() {
         </div>
       </div>
     </main>
-  )
+  );
 }
