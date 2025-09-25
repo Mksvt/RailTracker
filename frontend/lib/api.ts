@@ -1,7 +1,5 @@
 import axios from 'axios';
 import type { NextRequest } from "next/server"
-import { cookies } from "next/headers";
-
 
 const api = axios.create({
   baseURL: 'http://localhost:3000/api',
@@ -22,26 +20,6 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
-export const fetchMeServer = async () => {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("session")?.value;
-
-  if (!session) return null;
-
-  try {
-    const res = await axios.get(`/api/auth/me`, {
-      headers: {
-        Cookie: `session=${session}`,
-      },
-    });
-
-    return res.data;
-  } catch (err) {
-    console.error("fetchMeServer error:", err);
-    return null;
-  }
-};
 
 export const fetchMeEdge = async (request: NextRequest) => {
   try {

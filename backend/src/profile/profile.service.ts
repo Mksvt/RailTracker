@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Profile } from '../entities/profile.entity';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ProfileService {
@@ -28,20 +27,11 @@ export class ProfileService {
   }
 
   async create(profile: Partial<Profile>): Promise<Profile> {
-    // Пароль должен быть захэширован перед сохранением
-    if (profile.password) {
-      const salt = await bcrypt.genSalt();
-      profile.password = await bcrypt.hash(profile.password, salt);
-    }
     const newProfile = this.profilesRepository.create(profile);
     return this.profilesRepository.save(newProfile);
   }
 
   async update(id: string, profile: Partial<Profile>): Promise<Profile | null> {
-    if (profile.password) {
-      const salt = await bcrypt.genSalt();
-      profile.password = await bcrypt.hash(profile.password, salt);
-    }
     await this.profilesRepository.update(id, profile);
     return this.profilesRepository.findOneBy({ id });
   }

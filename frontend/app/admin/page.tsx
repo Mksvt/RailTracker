@@ -1,17 +1,12 @@
 import { redirect } from "next/navigation";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
-import { fetchMeServer } from "@/lib/api";
+import { fetchMeServer } from "@/lib/apiServer";
 
 export default async function AdminPage() {
   const user = await fetchMeServer();
 
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  if (user.role !== "admin") {
-    redirect("/");
-  }
+  if (!user) redirect("/auth/login");
+  if (user.role !== "admin") redirect("/");
 
   return (
     <div className="min-h-screen bg-background">
