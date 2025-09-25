@@ -126,29 +126,14 @@ export function ScheduleManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       if (editingSchedule) {
-        const response = await fetch(
-          `/api/admin/schedules/${editingSchedule.id}`,
-          {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData),
-          }
-        );
-        if (!response.ok) throw new Error('Failed to update schedule');
+        await updateSchedule(editingSchedule.id, formData);
         toast({ title: 'Успіх', description: 'Розклад оновлено' });
       } else {
-        const response = await fetch('/api/admin/schedules', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-        if (!response.ok) throw new Error('Failed to create schedule');
+        await createSchedule(formData);
         toast({ title: 'Успіх', description: 'Розклад створено' });
       }
-
       setIsDialogOpen(false);
       setEditingSchedule(null);
       resetForm();
@@ -165,12 +150,8 @@ export function ScheduleManagement() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Ви впевнені, що хочете видалити цей розклад?')) return;
-
     try {
-      const response = await fetch(`/api/admin/schedules/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete schedule');
+      await deleteSchedule(id);
       toast({ title: 'Успіх', description: 'Розклад видалено' });
       fetchData();
     } catch (error) {
@@ -229,35 +210,6 @@ export function ScheduleManagement() {
         return 'bg-destructive/20 text-destructive';
       default:
         return 'bg-gray-500/20 text-gray-400';
-    }
-  };
-
-  const handleCreateSchedule = async (scheduleData:any) => {
-    try {
-      const newSchedule = await createSchedule(scheduleData);
-      setSchedules((prev) => [...prev, newSchedule]);
-    } catch (error) {
-      console.error('Error creating schedule:', error);
-    }
-  };
-
-  const handleUpdateSchedule = async (id:any, scheduleData:any) => {
-    try {
-      const updatedSchedule = await updateSchedule(id, scheduleData);
-      setSchedules((prev) =>
-        prev.map((s) => (s.id === id ? updatedSchedule : s))
-      );
-    } catch (error) {
-      console.error('Error updating schedule:', error);
-    }
-  };
-
-  const handleDeleteSchedule = async (id:any) => {
-    try {
-      await deleteSchedule(id);
-      setSchedules((prev) => prev.filter((s) => s.id !== id));
-    } catch (error) {
-      console.error('Error deleting schedule:', error);
     }
   };
 

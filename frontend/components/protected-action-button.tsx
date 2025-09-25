@@ -1,10 +1,9 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { AuthModal } from "./auth-modal"
+import { fetchMe } from "@/lib/api"
 
 interface User {
   id: string
@@ -37,11 +36,8 @@ export function ProtectedActionButton({
   useEffect(() => {
     const getUser = async () => {
       try {
-        const response = await fetch("/api/auth/me")
-        if (response.ok) {
-          const userData = await response.json()
-          setUser(userData)
-        }
+        const userData = await fetchMe()
+        setUser(userData)
       } catch (error) {
         console.error("Error fetching user:", error)
       } finally {

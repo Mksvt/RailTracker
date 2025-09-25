@@ -24,7 +24,7 @@ import { ProfileModule } from './profile/profile.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         autoLoadEntities: true,
-        synchronize: true, // В разработке можно использовать true, но в продакшене лучше использовать миграции
+        synchronize: true, 
       }),
       inject: [ConfigService],
     }),

@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useRouter } from "next/navigation"
 import { LogIn, UserPlus } from "lucide-react"
+import {register, login} from "../lib/api"
+
 
 interface AuthModalProps {
   isOpen: boolean
@@ -32,33 +34,20 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+  e.preventDefault()
+  setIsLoading(true)
+  setError(null)
 
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: loginData.email,
-          password: loginData.password,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Помилка входу")
-      }
-
-      onClose()
-      router.refresh()
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Сталася помилка")
-    } finally {
-      setIsLoading(false)
-    }
+  try {
+    await login(loginData.email, loginData.password)
+    onClose()
+    router.refresh()
+  } catch (error: unknown) {
+    setError(error instanceof Error ? error.message : "Сталася помилка")
+  } finally {
+    setIsLoading(false)
   }
+}
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,15 +67,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
     }
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: registerData.email,
-          password: registerData.password,
-          fullName: registerData.fullName,
-        }),
-      })
+      const response = await register(registerData.email, registerData.password, registerData.fullName);
 
       if (!response.ok) {
         const errorData = await response.json()

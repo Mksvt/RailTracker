@@ -1,25 +1,16 @@
-import { redirect } from "next/navigation"
-import { AdminDashboard } from "@/components/admin/admin-dashboard"
-import { getUser } from "@/lib/auth"
-import { cookies } from "next/headers"
+import { redirect } from "next/navigation";
+import { AdminDashboard } from "@/components/admin/admin-dashboard";
+import { fetchMeServer } from "@/lib/api";
 
 export default async function AdminPage() {
-  const cookieStore = await cookies()
-  const request = {
-    cookies: {
-      get: (name: string) => cookieStore.get(name)?.value,
-    },
-  } as any
-
-  const user = await getUser(request)
+  const user = await fetchMeServer();
 
   if (!user) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
-  // Check if user is admin
   if (user.role !== "admin") {
-    redirect("/")
+    redirect("/");
   }
 
   return (
@@ -28,5 +19,5 @@ export default async function AdminPage() {
         <AdminDashboard />
       </div>
     </div>
-  )
+  );
 }

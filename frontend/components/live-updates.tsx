@@ -20,14 +20,18 @@ export function LiveUpdates() {
   const fetchUpdates = async () => {
     try {
       setIsLoading(true)
-
-      const response = await fetch("/api/live-updates")
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch updates")
-      }
-
-      const data = await response.json()
+      const data: Update[] = [
+      {
+        id: "mock-1",
+        type: "info",
+        message: "Поїзд №123 прибув на станцію Львів.",
+        timestamp: new Date().toLocaleTimeString("uk-UA", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        trainNumber: "123",
+      },
+    ]
       setUpdates(data || [])
     } catch (error) {
       console.error("Error fetching updates:", error)

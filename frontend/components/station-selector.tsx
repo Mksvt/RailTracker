@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRightLeft, MapPin, RefreshCw } from "lucide-react"
+import { getStations } from "../lib/api"
 
 interface Station {
   id: string
@@ -25,7 +26,7 @@ export function StationSelector({ onStationsChange }: StationSelectorProps) {
   const fetchStations = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch("/api/stations")
+      const response = await getStations()
 
       if (!response.ok) {
         throw new Error("Failed to fetch stations")

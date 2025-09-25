@@ -13,7 +13,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3001/api/:path*', // Прокси на ваш NestJS бэкенд
+        destination: 'http://localhost:3000/api/:path*', 
       },
     ];
   },

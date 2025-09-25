@@ -22,7 +22,7 @@ let Profile = class Profile {
 };
 exports.Profile = Profile;
 __decorate([
-    (0, typeorm_1.PrimaryColumn)('uuid'),
+    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], Profile.prototype, "id", void 0);
 __decorate([

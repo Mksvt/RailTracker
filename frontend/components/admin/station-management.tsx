@@ -1,12 +1,18 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -15,137 +21,124 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, RefreshCw, MapPin } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+} from '@/components/ui/dialog';
+import { Plus, Edit, Trash2, RefreshCw, MapPin } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  fetchStations,
+  createStation,
+  updateStation,
+  deleteStation,
+} from '@/lib/api';
 
 interface StationData {
-  id: string
-  name: string
-  code: string
-  city: string
-  country: string
+  id: string;
+  name: string;
+  code: string;
+  city: string;
+  country: string;
 }
 
 export function StationManagement() {
-  const [stations, setStations] = useState<StationData[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingStation, setEditingStation] = useState<StationData | null>(null)
+  const [stations, setStations] = useState<StationData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingStation, setEditingStation] = useState<StationData | null>(
+    null
+  );
   const [formData, setFormData] = useState({
-    name: "",
-    code: "",
-    city: "",
-    country: "Ukraine",
-  })
+    name: '',
+    code: '',
+    city: '',
+    country: 'Ukraine',
+  });
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const fetchStations = async () => {
+  const loadStations = async () => {
     try {
-      setIsLoading(true)
-      const response = await fetch("/api/admin/stations")
+      setIsLoading(true);
+      const data = await fetchStations();
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch stations")
-      }
-
-      const data = await response.json()
-      setStations(data || [])
+      setStations(data || []);
     } catch (error) {
-      console.error("Error fetching stations:", error)
+      console.error('Error fetching stations:', error);
       toast({
-        title: "Помилка",
-        description: "Не вдалося завантажити станції",
-        variant: "destructive",
-      })
+        title: 'Помилка',
+        description: 'Не вдалося завантажити станції',
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchStations()
-  }, [])
+    loadStations();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       if (editingStation) {
-        const response = await fetch(`/api/admin/stations/${editingStation.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        })
-
-        if (!response.ok) throw new Error("Failed to update station")
-        toast({ title: "Успіх", description: "Станцію оновлено" })
+        await updateStation(editingStation.id, formData);
+        toast({ title: 'Успіх', description: 'Станцію оновлено' });
       } else {
-        const response = await fetch("/api/admin/stations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        })
-
-        if (!response.ok) throw new Error("Failed to create station")
-        toast({ title: "Успіх", description: "Станцію створено" })
+        await createStation(formData);
+        toast({ title: 'Успіх', description: 'Станцію створено' });
       }
 
-      setIsDialogOpen(false)
-      setEditingStation(null)
-      resetForm()
-      fetchStations()
+      setIsDialogOpen(false);
+      setEditingStation(null);
+      resetForm();
+      loadStations();
     } catch (error) {
-      console.error("Error saving station:", error)
+      console.error('Error saving station:', error);
       toast({
-        title: "Помилка",
-        description: "Не вдалося зберегти станцію",
-        variant: "destructive",
-      })
+        title: 'Помилка',
+        description: 'Не вдалося зберегти станцію',
+        variant: 'destructive',
+      });
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Ви впевнені, що хочете видалити цю станцію?")) return
+    if (!confirm('Ви впевнені, що хочете видалити цю станцію?')) return;
 
     try {
-      const response = await fetch(`/api/admin/stations/${id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) throw new Error("Failed to delete station")
-      toast({ title: "Успіх", description: "Станцію видалено" })
-      fetchStations()
+      await deleteStation(id);
+      toast({ title: 'Успіх', description: 'Станцію видалено' });
+      loadStations();
     } catch (error) {
-      console.error("Error deleting station:", error)
+      console.error('Error deleting station:', error);
       toast({
-        title: "Помилка",
-        description: "Не вдалося видалити станцію",
-        variant: "destructive",
-      })
+        title: 'Помилка',
+        description: 'Не вдалося видалити станцію',
+        variant: 'destructive',
+      });
     }
-  }
+  };
 
   const handleEdit = (station: StationData) => {
-    setEditingStation(station)
+    setEditingStation(station);
     setFormData({
       name: station.name,
       code: station.code,
       city: station.city,
       country: station.country,
-    })
-    setIsDialogOpen(true)
-  }
+    });
+    setIsDialogOpen(true);
+  };
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      code: "",
-      city: "",
-      country: "Ukraine",
-    })
-  }
+      name: '',
+      code: '',
+      city: '',
+      country: 'Ukraine',
+    });
+  };
 
   if (isLoading) {
     return (
@@ -155,7 +148,7 @@ export function StationManagement() {
           <span className="ml-2">Завантаження...</span>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -164,7 +157,9 @@ export function StationManagement() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Управління станціями</CardTitle>
-            <CardDescription>Створення, редагування та видалення залізничних станцій</CardDescription>
+            <CardDescription>
+              Створення, редагування та видалення залізничних станцій
+            </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -175,9 +170,13 @@ export function StationManagement() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingStation ? "Редагувати станцію" : "Створити станцію"}</DialogTitle>
+                <DialogTitle>
+                  {editingStation ? 'Редагувати станцію' : 'Створити станцію'}
+                </DialogTitle>
                 <DialogDescription>
-                  {editingStation ? "Оновіть інформацію про станцію" : "Додайте нову залізничну станцію"}
+                  {editingStation
+                    ? 'Оновіть інформацію про станцію'
+                    : 'Додайте нову залізничну станцію'}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,7 +185,9 @@ export function StationManagement() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     placeholder="Київ-Пасажирський"
                     required
                   />
@@ -196,7 +197,12 @@ export function StationManagement() {
                   <Input
                     id="code"
                     value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        code: e.target.value.toUpperCase(),
+                      })
+                    }
                     placeholder="KYV"
                     required
                     maxLength={3}
@@ -207,7 +213,9 @@ export function StationManagement() {
                   <Input
                     id="city"
                     value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, city: e.target.value })
+                    }
                     placeholder="Київ"
                     required
                   />
@@ -217,16 +225,24 @@ export function StationManagement() {
                   <Input
                     id="country"
                     value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, country: e.target.value })
+                    }
                     placeholder="Ukraine"
                     required
                   />
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
                     Скасувати
                   </Button>
-                  <Button type="submit">{editingStation ? "Оновити" : "Створити"}</Button>
+                  <Button type="submit">
+                    {editingStation ? 'Оновити' : 'Створити'}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -236,13 +252,18 @@ export function StationManagement() {
       <CardContent>
         <div className="grid gap-4">
           {stations.map((station) => (
-            <div key={station.id} className="border border-border rounded-lg p-4 bg-secondary/30">
+            <div
+              key={station.id}
+              className="border border-border rounded-lg p-4 bg-secondary/30"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <MapPin className="h-8 w-8 text-primary" />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">{station.name}</span>
+                      <span className="font-semibold text-lg">
+                        {station.name}
+                      </span>
                       <span className="text-sm bg-primary/20 text-primary px-2 py-1 rounded font-mono">
                         {station.code}
                       </span>
@@ -253,10 +274,18 @@ export function StationManagement() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(station)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(station)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(station.id)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(station.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -266,5 +295,5 @@ export function StationManagement() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
