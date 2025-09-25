@@ -1,5 +1,6 @@
 'use client';
 
+import Cookies from 'js-cookie';
 import {
   createContext,
   useContext,
@@ -37,15 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = Cookies.get('token'); // Read from cookie
       if (token) {
         try {
-          // No need to set the header here, the interceptor in api.ts does it
+          // Set token for api requests
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           const response = await api.get('/auth/me');
           setUser(response.data);
         } catch (error) {
           console.error('Auth check failed:', error);
-          localStorage.removeItem('token'); // Token might be invalid
+          Cookies.remove('token'); // Remove invalid token
         }
       }
       setIsLoading(false);
@@ -58,7 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { access_token } = response.data;
-      localStorage.setItem('token', access_token);
+      Cookies.set('token', access_token, { expires: 7, secure: true }); // Set cookie
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       // After setting the token, fetch the user profile
       const userResponse = await api.get('/auth/me');
       setUser(userResponse.data);
@@ -80,7 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fullName,
       });
       const { access_token } = response.data;
-      localStorage.setItem('token', access_token);
+      Cookies.set('token', access_token, { expires: 7, secure: true }); // Set cookie
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       // After setting the token, fetch the user profile
       const userResponse = await api.get('/auth/me');
       setUser(userResponse.data);
@@ -91,7 +95,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    Cookies.remove('token'); // Remove cookie
+    delete api.defaults.headers.common['Authorization'];
     setUser(null);
     // No need to call a backend endpoint for logout in this JWT setup
   };

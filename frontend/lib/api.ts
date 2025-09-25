@@ -1,55 +1,65 @@
 import axios from 'axios';
-import type { NextRequest } from "next/server"
+import type { NextRequest } from 'next/server';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://localhost:3001/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 export const fetchMeEdge = async (request: NextRequest) => {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const tokenCookie = cookieHeader
+      .split(";")
+      .map(c => c.trim())
+      .find(c => c.startsWith("token="));
+    if (!tokenCookie) return null;
+
+    const token = decodeURIComponent(tokenCookie.split("=")[1]);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const res = await fetch(`${API_URL}/auth/me`, {
       headers: {
-        cookie: request.headers.get("cookie") || "",
+        Authorization: `Bearer ${token}`,
       },
-    })
+    });
 
-    if (!res.ok) return null
-    return await res.json()
+    if (!res.ok) {
+      console.log("fetchMeEdge failed:", res.status, await res.text());
+      return null;
+    }
+
+    return await res.json();
   } catch (err) {
-    console.error("fetchMeEdge error:", err)
-    return null
+    console.error("fetchMeEdge error:", err);
+    return null;
   }
-}
+};
 
-export const register = async (email: string, password: string, fullName?: string) => {
-  const response = await api.post('/auth/register', { email, password, fullName });
+
+export const register = async (
+  email: string,
+  password: string,
+  fullName?: string
+) => {
+  const response = await api.post('/auth/register', {
+    email,
+    password,
+    fullName,
+  });
   return response.data;
-}
+};
 
 export const login = async (email: string, password: string) => {
-  const response = await api.post("/auth/login", { email, password });
+  const response = await api.post('/auth/login', { email, password });
   return response.data;
 };
 
 export const fetchMe = async () => {
-  const response = await api.get("/api/auth/me", {
-    withCredentials: true, 
+  const response = await api.get('/auth/me', {
+    withCredentials: true,
   });
   return response.data;
 };
@@ -57,7 +67,7 @@ export const fetchMe = async () => {
 export const getStations = async () => {
   const response = await api.get('/stations');
   return response.data;
-}
+};
 
 export const fetchSchedules = async (search?: string, sort?: string) => {
   const response = await api.get('/schedules', {

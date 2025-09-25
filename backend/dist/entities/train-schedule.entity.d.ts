@@ -9,13 +9,13 @@ export declare class TrainSchedule {
     departureStation: Station;
     arrivalStationId: string;
     arrivalStation: Station;
-    departure_time: string;
-    arrival_time: string;
+    departureTime: Date;
+    arrivalTime: Date;
     platform: string;
     status: string;
-    delay_minutes: number;
+    delayMinutes: number;
     price: number;
-    available_seats: number;
+    availableSeats: number;
     createdBy: string;
     creator: Profile;
     createdAt: Date;

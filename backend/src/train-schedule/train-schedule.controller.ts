@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { TrainScheduleService } from './train-schedule.service';
+import { CreateTrainScheduleDto } from './dto/create-train-schedule.dto';
 import { TrainSchedule } from '../entities/train-schedule.entity';
 
 @Controller('schedules')
@@ -16,7 +17,7 @@ export class TrainScheduleController {
   constructor(private readonly trainScheduleService: TrainScheduleService) {}
 
   @Post()
-  create(@Body() createScheduleDto: Partial<TrainSchedule>) {
+  create(@Body() createScheduleDto: CreateTrainScheduleDto) {
     return this.trainScheduleService.create(createScheduleDto);
   }
 

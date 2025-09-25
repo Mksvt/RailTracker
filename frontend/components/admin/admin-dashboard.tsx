@@ -5,15 +5,20 @@ import { TrainManagement } from "./train-management"
 import { StationManagement } from "./station-management"
 import { ScheduleManagement } from "./schedule-management"
 import { UserManagement } from "./user-management"
+import { useRouter } from "next/navigation"
 
 export function AdminDashboard() {
+  const router = useRouter()
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Shield className="h-8 w-8 text-accent" />
+        <Shield className="h-8 w-8 text-accent" onClick={() => router.push("/")}/>
         <div>
           <h1 className="text-3xl font-bold text-foreground">Панель адміністратора</h1>
           <p className="text-muted-foreground">Управління системою розкладу поїздів</p>
+          <h5 className="text-xs font-bold text-balance bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" onClick={() => router.push("/")}>
+            RailTracker
+          </h5>
         </div>
       </div>
 

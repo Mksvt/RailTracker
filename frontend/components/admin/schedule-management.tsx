@@ -43,19 +43,19 @@ import {
 
 interface TrainSchedule {
   id: string;
-  train_id: string;
-  departure_station_id: string;
-  arrival_station_id: string;
-  departure_time: string;
-  arrival_time: string;
+  trainId: string;
+  departureStationId: string;
+  arrivalStationId: string;
+  departureTime: string;
+  arrivalTime: string;
   platform: string | null;
   status: string;
-  delay_minutes: number;
+  delayMinutes: number;
   price: number;
-  available_seats: number;
-  trains: { number: string; name: string };
-  departure_station: { name: string };
-  arrival_station: { name: string };
+  availableSeats: number;
+  train: { number: string; name: string };
+  departureStation: { name: string };
+  arrivalStation: { name: string };
 }
 
 interface Train {
@@ -81,17 +81,18 @@ export function ScheduleManagement() {
   const [editingSchedule, setEditingSchedule] = useState<TrainSchedule | null>(
     null
   );
+
   const [formData, setFormData] = useState({
-    train_id: '',
-    departure_station_id: '',
-    arrival_station_id: '',
-    departure_time: '',
-    arrival_time: '',
+    trainId: '',
+    departureStationId: '',
+    arrivalStationId: '',
+    departureTime: '',
+    arrivalTime: '',
     platform: '',
-    status: 'scheduled',
-    delay_minutes: 0,
+    status: 'on-time',
+    delayMinutes: 0,
     price: 0,
-    available_seats: 0,
+    availableSeats: 0,
   });
 
   const { toast } = useToast();
@@ -99,14 +100,13 @@ export function ScheduleManagement() {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-
-      const schedulesData = await fetchSchedules();
+      const [schedulesData, trainsData, stationsData] = await Promise.all([
+        fetchSchedules(),
+        fetchTrains(),
+        fetchStations(),
+      ]);
       setSchedules(schedulesData || []);
-
-      const trainsData = await fetchTrains();
       setTrains(trainsData || []);
-
-      const stationsData = await fetchStations();
       setStations(stationsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -124,25 +124,43 @@ export function ScheduleManagement() {
     fetchData();
   }, []);
 
+  const formatDateTimeForInput = (isoString: string) => {
+    if (!isoString) return '';
+    return isoString.slice(0, 16);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        departureTime: new Date(formData.departureTime).toISOString(),
+        arrivalTime: new Date(formData.arrivalTime).toISOString(),
+        price: Number(formData.price),
+        availableSeats: Number(formData.availableSeats),
+        delayMinutes: Number(formData.delayMinutes),
+      };
+
       if (editingSchedule) {
-        await updateSchedule(editingSchedule.id, formData);
+        await updateSchedule(editingSchedule.id, payload);
         toast({ title: 'Успіх', description: 'Розклад оновлено' });
       } else {
-        await createSchedule(formData);
+        await createSchedule(payload);
         toast({ title: 'Успіх', description: 'Розклад створено' });
       }
       setIsDialogOpen(false);
       setEditingSchedule(null);
       resetForm();
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving schedule:', error);
+      const errorMessages = error.response?.data?.message;
+      const description = Array.isArray(errorMessages)
+        ? errorMessages.join(', ')
+        : 'Не вдалося зберегти розклад';
       toast({
-        title: 'Помилка',
-        description: 'Не вдалося зберегти розклад',
+        title: 'Помилка валідації',
+        description,
         variant: 'destructive',
       });
     }
@@ -167,45 +185,41 @@ export function ScheduleManagement() {
   const handleEdit = (schedule: TrainSchedule) => {
     setEditingSchedule(schedule);
     setFormData({
-      train_id: schedule.train_id,
-      departure_station_id: schedule.departure_station_id,
-      arrival_station_id: schedule.arrival_station_id,
-      departure_time: schedule.departure_time,
-      arrival_time: schedule.arrival_time,
+      trainId: schedule.trainId,
+      departureStationId: schedule.departureStationId,
+      arrivalStationId: schedule.arrivalStationId,
+      departureTime: formatDateTimeForInput(schedule.departureTime),
+      arrivalTime: formatDateTimeForInput(schedule.arrivalTime),
       platform: schedule.platform || '',
       status: schedule.status,
-      delay_minutes: schedule.delay_minutes,
+      delayMinutes: schedule.delayMinutes,
       price: schedule.price,
-      available_seats: schedule.available_seats,
+      availableSeats: schedule.availableSeats,
     });
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setFormData({
-      train_id: '',
-      departure_station_id: '',
-      arrival_station_id: '',
-      departure_time: '',
-      arrival_time: '',
+      trainId: '',
+      departureStationId: '',
+      arrivalStationId: '',
+      departureTime: '',
+      arrivalTime: '',
       platform: '',
-      status: 'scheduled',
-      delay_minutes: 0,
+      status: 'on-time',
+      delayMinutes: 0,
       price: 0,
-      available_seats: 0,
+      availableSeats: 0,
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled':
+      case 'on-time':
         return 'bg-green-500/20 text-green-400';
       case 'delayed':
         return 'bg-red-500/20 text-red-400';
-      case 'departed':
-        return 'bg-blue-500/20 text-blue-400';
-      case 'arrived':
-        return 'bg-gray-500/20 text-gray-400';
       case 'cancelled':
         return 'bg-destructive/20 text-destructive';
       default:
@@ -236,7 +250,13 @@ export function ScheduleManagement() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm}>
+              <Button
+                onClick={() => {
+                  resetForm();
+                  setEditingSchedule(null);
+                  setIsDialogOpen(true);
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Додати розклад
               </Button>
@@ -253,13 +273,14 @@ export function ScheduleManagement() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* ... other form fields ... */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="train_id">Поїзд</Label>
+                    <Label htmlFor="trainId">Поїзд</Label>
                     <Select
-                      value={formData.train_id}
+                      value={formData.trainId}
                       onValueChange={(value) =>
-                        setFormData({ ...formData, train_id: value })
+                        setFormData({ ...formData, trainId: value })
                       }
                     >
                       <SelectTrigger>
@@ -289,15 +310,15 @@ export function ScheduleManagement() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="departure_station_id">
+                    <Label htmlFor="departureStationId">
                       Станція відправлення
                     </Label>
                     <Select
-                      value={formData.departure_station_id}
+                      value={formData.departureStationId}
                       onValueChange={(value) =>
                         setFormData({
                           ...formData,
-                          departure_station_id: value,
+                          departureStationId: value,
                         })
                       }
                     >
@@ -314,11 +335,11 @@ export function ScheduleManagement() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="arrival_station_id">Станція прибуття</Label>
+                    <Label htmlFor="arrivalStationId">Станція прибуття</Label>
                     <Select
-                      value={formData.arrival_station_id}
+                      value={formData.arrivalStationId}
                       onValueChange={(value) =>
-                        setFormData({ ...formData, arrival_station_id: value })
+                        setFormData({ ...formData, arrivalStationId: value })
                       }
                     >
                       <SelectTrigger>
@@ -337,37 +358,36 @@ export function ScheduleManagement() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="departure_time">Час відправлення</Label>
+                    <Label htmlFor="departureTime">Час відправлення</Label>
                     <Input
-                      id="departure_time"
-                      type="time"
-                      value={formData.departure_time}
+                      id="departureTime"
+                      type="datetime-local"
+                      value={formData.departureTime}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          departure_time: e.target.value,
+                          departureTime: e.target.value,
                         })
                       }
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="arrival_time">Час прибуття</Label>
+                    <Label htmlFor="arrivalTime">Час прибуття</Label>
                     <Input
-                      id="arrival_time"
-                      type="time"
-                      value={formData.arrival_time}
+                      id="arrivalTime"
+                      type="datetime-local"
+                      value={formData.arrivalTime}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          arrival_time: e.target.value,
+                          arrivalTime: e.target.value,
                         })
                       }
                       required
                     />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="status">Статус</Label>
@@ -381,25 +401,23 @@ export function ScheduleManagement() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="scheduled">За розкладом</SelectItem>
+                        <SelectItem value="on-time">За розкладом</SelectItem>
                         <SelectItem value="delayed">Затримка</SelectItem>
-                        <SelectItem value="departed">Відправився</SelectItem>
-                        <SelectItem value="arrived">Прибув</SelectItem>
                         <SelectItem value="cancelled">Скасовано</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="delay_minutes">Затримка (хв)</Label>
+                    <Label htmlFor="delayMinutes">Затримка (хв)</Label>
                     <Input
-                      id="delay_minutes"
+                      id="delayMinutes"
                       type="number"
                       min="0"
-                      value={formData.delay_minutes}
+                      value={formData.delayMinutes}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          delay_minutes: Number.parseInt(e.target.value) || 0,
+                          delayMinutes: Number.parseInt(e.target.value) || 0,
                         })
                       }
                     />
@@ -424,16 +442,16 @@ export function ScheduleManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="available_seats">Доступні місця</Label>
+                  <Label htmlFor="availableSeats">Доступні місця</Label>
                   <Input
-                    id="available_seats"
+                    id="availableSeats"
                     type="number"
                     min="0"
-                    value={formData.available_seats}
+                    value={formData.availableSeats}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        available_seats: Number.parseInt(e.target.value) || 0,
+                        availableSeats: Number.parseInt(e.target.value) || 0,
                       })
                     }
                     required
@@ -468,31 +486,39 @@ export function ScheduleManagement() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-4">
                     <span className="font-semibold text-lg">
-                      {schedule.trains.number}
+                      {schedule.train.number}
                     </span>
                     <span className="text-muted-foreground">
-                      {schedule.trains.name}
+                      {schedule.train.name}
                     </span>
                     <Badge className={getStatusColor(schedule.status)}>
                       {schedule.status}
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {schedule.departure_station.name} →{' '}
-                    {schedule.arrival_station.name}
+                    {schedule.departureStation.name} →{' '}
+                    {schedule.arrivalStation.name}
                   </div>
                   <div className="flex items-center gap-4 text-sm">
                     <span>
-                      {schedule.departure_time} - {schedule.arrival_time}
+                      {new Date(schedule.departureTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}{' '}
+                      -{' '}
+                      {new Date(schedule.arrivalTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </span>
                     {schedule.platform && (
                       <span>Платформа {schedule.platform}</span>
                     )}
                     <span>₴{schedule.price}</span>
-                    <span>Місць: {schedule.available_seats}</span>
-                    {schedule.delay_minutes > 0 && (
+                    <span>Місць: {schedule.availableSeats}</span>
+                    {schedule.delayMinutes > 0 && (
                       <span className="text-red-400">
-                        +{schedule.delay_minutes}хв
+                        +{schedule.delayMinutes}хв
                       </span>
                     )}
                   </div>

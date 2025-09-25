@@ -33,7 +33,8 @@ let TrainScheduleService = class TrainScheduleService {
             ];
         }
         if (sort) {
-            options.order = { [sort]: 'ASC' };
+            const sortKey = sort.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+            options.order = { [sortKey]: 'ASC' };
         }
         return this.trainSchedulesRepository.find(options);
     }
@@ -43,8 +44,14 @@ let TrainScheduleService = class TrainScheduleService {
             relations: ['train', 'departureStation', 'arrivalStation'],
         });
     }
-    create(schedule) {
-        const newSchedule = this.trainSchedulesRepository.create(schedule);
+    create(createScheduleDto) {
+        const { trainId, departureStationId, arrivalStationId, ...scheduleData } = createScheduleDto;
+        const newSchedule = this.trainSchedulesRepository.create({
+            ...scheduleData,
+            train: { id: trainId },
+            departureStation: { id: departureStationId },
+            arrivalStation: { id: arrivalStationId },
+        });
         return this.trainSchedulesRepository.save(newSchedule);
     }
     async update(id, schedule) {

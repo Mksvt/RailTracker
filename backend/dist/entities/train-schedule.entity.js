@@ -22,13 +22,13 @@ let TrainSchedule = class TrainSchedule {
     departureStation;
     arrivalStationId;
     arrivalStation;
-    departure_time;
-    arrival_time;
+    departureTime;
+    arrivalTime;
     platform;
     status;
-    delay_minutes;
+    delayMinutes;
     price;
-    available_seats;
+    availableSeats;
     createdBy;
     creator;
     createdAt;
@@ -67,13 +67,13 @@ __decorate([
     __metadata("design:type", station_entity_1.Station)
 ], TrainSchedule.prototype, "arrivalStation", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'time' }),
-    __metadata("design:type", String)
-], TrainSchedule.prototype, "departure_time", void 0);
+    (0, typeorm_1.Column)({ type: 'timestamptz', name: 'departure_time' }),
+    __metadata("design:type", Date)
+], TrainSchedule.prototype, "departureTime", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'time' }),
-    __metadata("design:type", String)
-], TrainSchedule.prototype, "arrival_time", void 0);
+    (0, typeorm_1.Column)({ type: 'timestamptz', name: 'arrival_time' }),
+    __metadata("design:type", Date)
+], TrainSchedule.prototype, "arrivalTime", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'text', nullable: true }),
     __metadata("design:type", String)
@@ -83,17 +83,17 @@ __decorate([
     __metadata("design:type", String)
 ], TrainSchedule.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'integer', default: 0 }),
+    (0, typeorm_1.Column)({ type: 'integer', default: 0, name: 'delay_minutes' }),
     __metadata("design:type", Number)
-], TrainSchedule.prototype, "delay_minutes", void 0);
+], TrainSchedule.prototype, "delayMinutes", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, nullable: true }),
     __metadata("design:type", Number)
 ], TrainSchedule.prototype, "price", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'integer', default: 0 }),
+    (0, typeorm_1.Column)({ type: 'integer', default: 0, name: 'available_seats' }),
     __metadata("design:type", Number)
-], TrainSchedule.prototype, "available_seats", void 0);
+], TrainSchedule.prototype, "availableSeats", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'created_by', type: 'uuid', nullable: true }),
     __metadata("design:type", String)

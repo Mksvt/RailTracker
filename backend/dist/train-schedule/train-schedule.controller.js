@@ -11,10 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TrainScheduleController = void 0;
 const common_1 = require("@nestjs/common");
 const train_schedule_service_1 = require("./train-schedule.service");
+const create_train_schedule_dto_1 = require("./dto/create-train-schedule.dto");
 let TrainScheduleController = class TrainScheduleController {
     trainScheduleService;
     constructor(trainScheduleService) {
@@ -41,7 +43,7 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [typeof (_a = typeof create_train_schedule_dto_1.CreateTrainScheduleDto !== "undefined" && create_train_schedule_dto_1.CreateTrainScheduleDto) === "function" ? _a : Object]),
     __metadata("design:returntype", void 0)
 ], TrainScheduleController.prototype, "create", null);
 __decorate([

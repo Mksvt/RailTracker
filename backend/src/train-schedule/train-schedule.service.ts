@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions } from 'typeorm';
 import { TrainSchedule } from '../entities/train-schedule.entity';
+import { CreateTrainScheduleDto } from './dto/create-train-schedule.dto';
 
 @Injectable()
 export class TrainScheduleService {
@@ -23,7 +24,8 @@ export class TrainScheduleService {
     }
 
     if (sort) {
-      options.order = { [sort]: 'ASC' };
+      const sortKey = sort.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+      options.order = { [sortKey]: 'ASC' };
     }
 
     return this.trainSchedulesRepository.find(options);
@@ -36,8 +38,16 @@ export class TrainScheduleService {
     });
   }
 
-  create(schedule: Partial<TrainSchedule>): Promise<TrainSchedule> {
-    const newSchedule = this.trainSchedulesRepository.create(schedule);
+  create(createScheduleDto: CreateTrainScheduleDto): Promise<TrainSchedule> {
+    const { trainId, departureStationId, arrivalStationId, ...scheduleData } =
+      createScheduleDto;
+
+    const newSchedule = this.trainSchedulesRepository.create({
+      ...scheduleData,
+      train: { id: trainId },
+      departureStation: { id: departureStationId },
+      arrivalStation: { id: arrivalStationId },
+    });
     return this.trainSchedulesRepository.save(newSchedule);
   }
 

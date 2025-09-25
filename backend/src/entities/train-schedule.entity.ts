@@ -37,11 +37,12 @@ export class TrainSchedule {
   @JoinColumn({ name: 'arrival_station_id' })
   arrivalStation: Station;
 
-  @Column({ type: 'time' })
-  departure_time: string;
+  @Column({ type: 'timestamptz', name: 'departure_time' })
+  departureTime: Date;
 
-  @Column({ type: 'time' })
-  arrival_time: string;
+  @Column({ type: 'timestamptz', name: 'arrival_time' })
+  arrivalTime: Date;
+
 
   @Column({ type: 'text', nullable: true })
   platform: string;
@@ -49,14 +50,14 @@ export class TrainSchedule {
   @Column({ type: 'text', default: 'scheduled' })
   status: string;
 
-  @Column({ type: 'integer', default: 0 })
-  delay_minutes: number;
+  @Column({ type: 'integer', default: 0, name: 'delay_minutes' })
+  delayMinutes: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   price: number;
 
-  @Column({ type: 'integer', default: 0 })
-  available_seats: number;
+  @Column({ type: 'integer', default: 0, name: 'available_seats' })
+  availableSeats: number; 
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
   createdBy: string;
