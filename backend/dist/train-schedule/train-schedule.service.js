@@ -28,8 +28,10 @@ let TrainScheduleService = class TrainScheduleService {
         };
         if (search) {
             options.where = [
-                { departureStation: { name: `%${search}%` } },
-                { arrivalStation: { name: `%${search}%` } },
+                { departureStation: { name: (0, typeorm_2.Like)(`%${search}%`) } },
+                { arrivalStation: { name: (0, typeorm_2.Like)(`%${search}%`) } },
+                { train: { number: (0, typeorm_2.Like)(`%${search}%`) } },
+                { train: { name: (0, typeorm_2.Like)(`%${search}%`) } },
             ];
         }
         if (sort) {

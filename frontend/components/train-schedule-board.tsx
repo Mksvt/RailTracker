@@ -5,22 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Train, AlertCircle, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '@/components/ui/select';
 import { fetchSchedules } from '../lib/api';
 import { TransformedSchedule, TrainScheduleBoardProps } from '../types/types';
-import {
-  getStatusColor,
-  getStatusText,
-  getTrainTypeText,
-  formatTime,
-} from '../lib/helpers';
-import {getStatusIcon} from '../lib/iconHelpers';
+import { getStatusColor, getStatusText, getTrainTypeText, formatTime, } from '../lib/helpers';
+import { getStatusIcon } from '../lib/iconHelpers';
 
 export function TrainScheduleBoard({
   fromStation,

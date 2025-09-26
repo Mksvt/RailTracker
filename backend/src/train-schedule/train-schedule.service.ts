@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions } from 'typeorm';
+import { Repository, FindManyOptions, Like } from 'typeorm';
 import { TrainSchedule } from '../entities/train-schedule.entity';
 import { CreateTrainScheduleDto } from './dto/create-train-schedule.dto';
 
@@ -18,8 +18,10 @@ export class TrainScheduleService {
 
     if (search) {
       options.where = [
-        { departureStation: { name: `%${search}%` } },
-        { arrivalStation: { name: `%${search}%` } },
+        { departureStation: { name: Like(`%${search}%`) } },
+        { arrivalStation: { name: Like(`%${search}%`) } },
+        { train: { number: Like(`%${search}%`) } },
+        { train: { name: Like(`%${search}%`) } },
       ];
     }
 

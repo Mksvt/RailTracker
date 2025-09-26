@@ -83,3 +83,27 @@ export interface StationData {
   city: string;
   country: string;
 }
+
+export interface TrainSchedule {
+  id: string;
+  trainId: string;
+  departureStationId: string;
+  arrivalStationId: string;
+  departureTime: string;
+  arrivalTime: string;
+  platform: string | null;
+  status: string;
+  delayMinutes: number;
+  price: number;
+  availableSeats: number;
+  train: { number: string; name: string };
+  departureStation: { name: string };
+  arrivalStation: { name: string };
+}
+
+export interface Train {
+  id: string;
+  number: string;
+  name: string;
+  type: string;
+}

@@ -1,23 +1,12 @@
 'use client';
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { Plus, Edit, RefreshCw, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  fetchStations,
-  createStation,
-  updateStation,
-  deleteStation,
-} from '@/lib/api';
+import { fetchStations, createStation, updateStation, deleteStation, } from '@/lib/api';
 import { StationData } from '@/types/types';
 import { StationDialog } from '../modals/station-modal';
 
