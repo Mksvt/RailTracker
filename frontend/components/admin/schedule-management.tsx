@@ -43,6 +43,7 @@ export function ScheduleManagement() {
       setStations(stationsData || []);
     } catch (error) {
       toast({ title: 'Помилка', description: 'Не вдалося завантажити дані', variant: 'destructive' });
+      console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
     }

@@ -63,7 +63,7 @@ export default function RegisterPage() {
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-foreground">
-                  Повне ім'я
+                  Повне ім&apos;я
                 </Label>
                 <Input
                   id="fullName"

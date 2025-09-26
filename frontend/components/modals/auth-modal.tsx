@@ -155,7 +155,7 @@ export function AuthModal({
           <TabsContent value="register" className="space-y-4">
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="register-name">Повне ім'я</Label>
+                <Label htmlFor="register-name">Повне ім&apos;я</Label>
                 <Input
                   id="register-name"
                   type="text"
