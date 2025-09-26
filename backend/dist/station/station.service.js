@@ -17,10 +17,13 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const station_entity_1 = require("../entities/station.entity");
+const train_schedule_entity_1 = require("../entities/train-schedule.entity");
 let StationService = class StationService {
     stationsRepository;
-    constructor(stationsRepository) {
+    trainSchedulesRepository;
+    constructor(stationsRepository, trainSchedulesRepository) {
         this.stationsRepository = stationsRepository;
+        this.trainSchedulesRepository = trainSchedulesRepository;
     }
     findAll() {
         return this.stationsRepository.find();
@@ -37,6 +40,12 @@ let StationService = class StationService {
         return this.stationsRepository.findOneBy({ id });
     }
     async remove(id) {
+        const schedulesCount = await this.trainSchedulesRepository.count({
+            where: [{ departureStationId: id }, { arrivalStationId: id }],
+        });
+        if (schedulesCount > 0) {
+            throw new common_1.BadRequestException(`Неможливо видалити станцію. Вона використовується в ${schedulesCount} розкладах поїздів. Спочатку видаліть всі пов'язані розклади.`);
+        }
         await this.stationsRepository.delete(id);
     }
 };
@@ -44,6 +53,8 @@ exports.StationService = StationService;
 exports.StationService = StationService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(station_entity_1.Station)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(train_schedule_entity_1.TrainSchedule)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], StationService);
 //# sourceMappingURL=station.service.js.map

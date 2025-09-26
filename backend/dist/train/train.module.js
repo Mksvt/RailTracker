@@ -10,6 +10,7 @@ exports.TrainModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const train_entity_1 = require("../entities/train.entity");
+const train_schedule_entity_1 = require("../entities/train-schedule.entity");
 const train_service_1 = require("./train.service");
 const train_controller_1 = require("./train.controller");
 let TrainModule = class TrainModule {
@@ -17,7 +18,7 @@ let TrainModule = class TrainModule {
 exports.TrainModule = TrainModule;
 exports.TrainModule = TrainModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([train_entity_1.Train])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([train_entity_1.Train, train_schedule_entity_1.TrainSchedule])],
         providers: [train_service_1.TrainService],
         controllers: [train_controller_1.TrainController],
     })

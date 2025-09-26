@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -10,17 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import { RefreshCw, User, Shield, UserX, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchProfiles, updateProfile, deleteProfile } from '@/lib/api';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: string;
-  created_at: string;
-}
+import { UserProfile } from '../../types/types';
+import { getRoleColor, getRoleText } from '@/lib/helpers';
 
 export function UserManagement() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -53,7 +47,7 @@ export function UserManagement() {
     try {
       await updateProfile(userId, { role: newRole });
       toast({ title: 'Успіх', description: 'Роль користувача оновлено' });
-      loadUsers(); // Refresh the list
+      loadUsers();
     } catch (error) {
       console.error('Error updating user role:', error);
       toast({
@@ -65,11 +59,10 @@ export function UserManagement() {
   };
 
   const handleDelete = async (userId: string) => {
-    if (!confirm('Ви впевнені, що хочете видалити цього користувача?')) return;
     try {
       await deleteProfile(userId);
       toast({ title: 'Успіх', description: 'Користувача видалено' });
-      loadUsers(); // Refresh the list
+      loadUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
@@ -77,28 +70,6 @@ export function UserManagement() {
         description: 'Не вдалося видалити користувача',
         variant: 'destructive',
       });
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-500/20 text-red-400';
-      case 'user':
-        return 'bg-green-500/20 text-green-400';
-      default:
-        return 'bg-gray-500/20 text-gray-400';
-    }
-  };
-
-  const getRoleText = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'Адміністратор';
-      case 'user':
-        return 'Користувач';
-      default:
-        return role;
     }
   };
 
@@ -185,14 +156,23 @@ export function UserManagement() {
                       Зняти права адміна
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(user.id)}
-                    className="text-destructive hover:text-destructive/80"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <DeleteConfirmDialog
+                    title="Видалити користувача?"
+                    description="Ви впевнені, що хочете видалити цього користувача? Цю дію неможливо скасувати."
+                    itemInfo={`${user.full_name || 'Без імені'} (${
+                      user.email
+                    })`}
+                    onConfirm={() => handleDelete(user.id)}
+                    trigger={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive/80"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </div>

@@ -1,8 +1,10 @@
 import { Repository } from 'typeorm';
 import { Train } from '../entities/train.entity';
+import { TrainSchedule } from '../entities/train-schedule.entity';
 export declare class TrainService {
     private trainsRepository;
-    constructor(trainsRepository: Repository<Train>);
+    private trainSchedulesRepository;
+    constructor(trainsRepository: Repository<Train>, trainSchedulesRepository: Repository<TrainSchedule>);
     findAll(): Promise<Train[]>;
     findOne(id: string): Promise<Train | null>;
     create(train: Partial<Train>): Promise<Train>;

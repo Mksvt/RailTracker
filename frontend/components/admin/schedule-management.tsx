@@ -1,7 +1,5 @@
 'use client';
-
 import type React from 'react';
-
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -23,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -167,7 +166,6 @@ export function ScheduleManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Ви впевнені, що хочете видалити цей розклад?')) return;
     try {
       await deleteSchedule(id);
       toast({ title: 'Успіх', description: 'Розклад видалено' });
@@ -531,13 +529,12 @@ export function ScheduleManagement() {
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(schedule.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <DeleteConfirmDialog
+                    title="Видалити розклад?"
+                    description="Ви впевнені, що хочете видалити цей розклад? Цю дію неможливо скасувати."
+                    itemInfo={`${schedule.train.number} - ${schedule.departureStation.name} → ${schedule.arrivalStation.name}`}
+                    onConfirm={() => handleDelete(schedule.id)}
+                  />
                 </div>
               </div>
             </div>

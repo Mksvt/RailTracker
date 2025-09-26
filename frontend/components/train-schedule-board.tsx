@@ -1,19 +1,9 @@
-// components/train-schedule-board.tsx
-
 'use client';
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Clock,
-  MapPin,
-  Train,
-  AlertCircle,
-  CheckCircle,
-  RefreshCw,
-} from 'lucide-react';
+import { MapPin, Train, AlertCircle, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -23,35 +13,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { fetchSchedules } from '../lib/api';
+import { TransformedSchedule, TrainScheduleBoardProps } from '../types/types';
+import {
+  getStatusColor,
+  getStatusText,
+  getTrainTypeText,
+  formatTime,
+} from '../lib/helpers';
+import {getStatusIcon} from '../lib/iconHelpers';
 
-interface TransformedSchedule {
-  id: string;
-  train_number: string;
-  train_name: string;
-  train_type: string;
-  departure_time: string;
-  arrival_time: string;
-  from_station_name: string;
-  to_station_name: string;
-  platform: string | null;
-  status: string;
-  delay_minutes: number;
-  price: string;
-  available_seats: number;
-}
-
-interface TrainScheduleBoardProps {
-  fromStation: string;
-  toStation: string;
-}
-
-const formatTime = (dateString: string): string => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-};
-
-export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoardProps) {
+export function TrainScheduleBoard({
+  fromStation,
+  toStation,
+}: TrainScheduleBoardProps) {
   const [schedules, setSchedules] = useState<TransformedSchedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +60,7 @@ export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoar
           price: item.price,
           available_seats: item.availableSeats,
         }));
-        
+
         setSchedules(transformedData);
       } catch (err) {
         console.error('Error fetching schedules:', err);
@@ -99,56 +73,14 @@ export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoar
     loadSchedules();
   }, [fromStation, toStation, search, sort]);
 
-  // Функції-хелпери для стилізації та іконок
-  const getStatusColor = (status: string) => {
-    const colors: { [key: string]: string } = {
-      scheduled: 'bg-green-500/20 text-green-400 border-green-500/30',
-      delayed: 'bg-red-500/20 text-red-400 border-red-500/30',
-      departed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      arrived: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
-      cancelled: 'bg-destructive/20 text-destructive border-destructive/30',
-    };
-    return colors[status] || 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const icons: { [key: string]: JSX.Element } = {
-      scheduled: <CheckCircle className="h-4 w-4" />,
-      delayed: <AlertCircle className="h-4 w-4" />,
-      departed: <Train className="h-4 w-4" />,
-    };
-    return icons[status] || <Clock className="h-4 w-4" />;
-  };
-
-  const getStatusText = (status: string) => {
-    const texts: { [key: string]: string } = {
-      scheduled: 'За розкладом',
-      delayed: 'Затримка',
-      departed: 'Відправився',
-      arrived: 'Прибув',
-      cancelled: 'Скасовано',
-    };
-    return texts[status] || status;
-  };
-
-  const getTrainTypeText = (type: string) => {
-    const types: { [key: string]: string } = {
-      high_speed: 'Швидкісний',
-      intercity: 'Інтерсіті',
-      regional: 'Регіональний',
-      local: 'Приміський',
-    };
-    return types[type] || type;
-  };
-
-  // --- РЕНДЕРИНГ КОМПОНЕНТА ---
-
   if (isLoading) {
     return (
       <Card className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
         <div className="flex items-center justify-center py-12">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-muted-foreground">Завантаження розкладу...</span>
+          <span className="ml-2 text-muted-foreground">
+            Завантаження розкладу...
+          </span>
         </div>
       </Card>
     );
@@ -197,7 +129,9 @@ export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoar
         <div className="text-center py-12 text-muted-foreground">
           <Train className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>За вашим запитом поїздів не знайдено.</p>
-          <p className="text-sm">Спробуйте змінити станції або параметри пошуку.</p>
+          <p className="text-sm">
+            Спробуйте змінити станції або параметри пошуку.
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -210,25 +144,39 @@ export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoar
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="text-center">
-                    <div className="font-mono text-2xl font-bold text-primary">{schedule.departure_time}</div>
-                    <div className="text-xs text-muted-foreground">Відправлення</div>
+                    <div className="font-mono text-2xl font-bold text-primary">
+                      {schedule.departure_time}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Відправлення
+                    </div>
                   </div>
 
                   <div className="flex flex-col items-center">
                     <Train className="h-6 w-6 text-accent mb-1" />
-                    <div className="text-xs text-muted-foreground">{getTrainTypeText(schedule.train_type)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {getTrainTypeText(schedule.train_type)}
+                    </div>
                   </div>
 
                   <div className="text-center">
-                    <div className="font-mono text-2xl font-bold text-accent">{schedule.arrival_time}</div>
-                    <div className="text-xs text-muted-foreground">Прибуття</div>
+                    <div className="font-mono text-2xl font-bold text-accent">
+                      {schedule.arrival_time}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Прибуття
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <div className="font-semibold text-foreground">{schedule.train_number}</div>
-                    <div className="text-sm text-muted-foreground">{schedule.train_name}</div>
+                    <div className="font-semibold text-foreground">
+                      {schedule.train_number}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {schedule.train_name}
+                    </div>
                     {schedule.platform && (
                       <div className="flex items-center justify-end gap-1 text-sm text-muted-foreground">
                         <MapPin className="h-3 w-3" />
@@ -237,7 +185,11 @@ export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoar
                     )}
                   </div>
 
-                  <Badge className={`${getStatusColor(schedule.status)} flex min-w-[120px] items-center justify-center gap-1`}>
+                  <Badge
+                    className={`${getStatusColor(
+                      schedule.status
+                    )} flex min-w-[120px] items-center justify-center gap-1`}
+                  >
                     {getStatusIcon(schedule.status)}
                     {schedule.status === 'delayed' && schedule.delay_minutes > 0
                       ? `+${schedule.delay_minutes}хв`
@@ -248,7 +200,9 @@ export function TrainScheduleBoard({ fromStation, toStation }: TrainScheduleBoar
 
               <div className="mt-3 border-t border-border/30 pt-3">
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span className="font-semibold">{schedule.from_station_name} → {schedule.to_station_name}</span>
+                  <span className="font-semibold">
+                    {schedule.from_station_name} → {schedule.to_station_name}
+                  </span>
                   <div className="flex items-center gap-4">
                     <span>{schedule.price} ₴</span>
                     <span>Місць: {schedule.available_seats}</span>

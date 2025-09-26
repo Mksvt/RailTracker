@@ -1,97 +1,108 @@
-"use client"
+'use client';
+import type React from 'react';
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRouter } from 'next/navigation';
+import { LogIn, UserPlus } from 'lucide-react';
+import { register, login } from '../../lib/api';
+import { AuthModalProps } from '../../types/types';
 
-import type React from "react"
-
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useRouter } from "next/navigation"
-import { LogIn, UserPlus } from "lucide-react"
-import {register, login} from "../lib/api"
-
-
-interface AuthModalProps {
-  isOpen: boolean
-  onClose: () => void
-  defaultTab?: "login" | "register"
-}
-
-export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [loginData, setLoginData] = useState({ email: "", password: "" })
+export function AuthModal({
+  isOpen,
+  onClose,
+  defaultTab = 'login',
+}: AuthModalProps) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    fullName: "",
-  })
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+  });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setIsLoading(true)
-  setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    await login(loginData.email, loginData.password)
-    onClose()
-    router.refresh()
-  } catch (error: unknown) {
-    setError(error instanceof Error ? error.message : "Сталася помилка")
-  } finally {
-    setIsLoading(false)
-  }
-}
+    try {
+      await login(loginData.email, loginData.password);
+      onClose();
+      router.refresh();
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Сталася помилка');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
     if (registerData.password !== registerData.confirmPassword) {
-      setError("Паролі не співпадають")
-      setIsLoading(false)
-      return
+      setError('Паролі не співпадають');
+      setIsLoading(false);
+      return;
     }
 
     if (registerData.password.length < 6) {
-      setError("Пароль повинен містити принаймні 6 символів")
-      setIsLoading(false)
-      return
+      setError('Пароль повинен містити принаймні 6 символів');
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const response = await register(registerData.email, registerData.password, registerData.fullName);
+      const response = await register(
+        registerData.email,
+        registerData.password,
+        registerData.fullName
+      );
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Помилка реєстрації")
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Помилка реєстрації');
       }
 
-      onClose()
-      router.refresh()
+      onClose();
+      router.refresh();
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Сталася помилка")
+      setError(error instanceof Error ? error.message : 'Сталася помилка');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Вхід до системи</DialogTitle>
-          <DialogDescription>Увійдіть або зареєструйтеся для доступу до всіх функцій</DialogDescription>
+          <DialogDescription>
+            Увійдіть або зареєструйтеся для доступу до всіх функцій
+          </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register")}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'login' | 'register')}
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login" className="flex items-center gap-2">
               <LogIn className="h-4 w-4" />
@@ -113,7 +124,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   placeholder="example@email.com"
                   required
                   value={loginData.email}
-                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                  onChange={(e) =>
+                    setLoginData({ ...loginData, email: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -123,7 +136,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   type="password"
                   required
                   value={loginData.password}
-                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                  onChange={(e) =>
+                    setLoginData({ ...loginData, password: e.target.value })
+                  }
                 />
               </div>
               {error && (
@@ -132,7 +147,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Вхід..." : "Увійти"}
+                {isLoading ? 'Вхід...' : 'Увійти'}
               </Button>
             </form>
           </TabsContent>
@@ -147,7 +162,12 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   placeholder="Іван Іванов"
                   required
                   value={registerData.fullName}
-                  onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({
+                      ...registerData,
+                      fullName: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -158,7 +178,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   placeholder="example@email.com"
                   required
                   value={registerData.email}
-                  onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, email: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -168,7 +190,12 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   type="password"
                   required
                   value={registerData.password}
-                  onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({
+                      ...registerData,
+                      password: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -178,7 +205,12 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   type="password"
                   required
                   value={registerData.confirmPassword}
-                  onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({
+                      ...registerData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
                 />
               </div>
               {error && (
@@ -187,12 +219,12 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                 </div>
               )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Реєстрація..." : "Зареєструватися"}
+                {isLoading ? 'Реєстрація...' : 'Зареєструватися'}
               </Button>
             </form>
           </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

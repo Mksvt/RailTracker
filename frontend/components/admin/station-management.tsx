@@ -1,7 +1,5 @@
 'use client';
-
 import type React from 'react';
-
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -11,18 +9,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, RefreshCw, MapPin } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/ui/delete-confirm-dialog';
+import { Plus, Edit, RefreshCw, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   fetchStations,
@@ -30,14 +18,8 @@ import {
   updateStation,
   deleteStation,
 } from '@/lib/api';
-
-interface StationData {
-  id: string;
-  name: string;
-  code: string;
-  city: string;
-  country: string;
-}
+import { StationData } from '@/types/types';
+import { StationDialog } from '../modals/station-modal';
 
 export function StationManagement() {
   const [stations, setStations] = useState<StationData[]>([]);
@@ -46,12 +28,6 @@ export function StationManagement() {
   const [editingStation, setEditingStation] = useState<StationData | null>(
     null
   );
-  const [formData, setFormData] = useState({
-    name: '',
-    code: '',
-    city: '',
-    country: 'Ukraine',
-  });
 
   const { toast } = useToast();
 
@@ -59,7 +35,6 @@ export function StationManagement() {
     try {
       setIsLoading(true);
       const data = await fetchStations();
-
       setStations(data || []);
     } catch (error) {
       console.error('Error fetching stations:', error);
@@ -77,9 +52,7 @@ export function StationManagement() {
     loadStations();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async (formData: Omit<StationData, 'id'>) => {
     try {
       if (editingStation) {
         await updateStation(editingStation.id, formData);
@@ -88,10 +61,8 @@ export function StationManagement() {
         await createStation(formData);
         toast({ title: 'Успіх', description: 'Станцію створено' });
       }
-
       setIsDialogOpen(false);
       setEditingStation(null);
-      resetForm();
       loadStations();
     } catch (error) {
       console.error('Error saving station:', error);
@@ -104,8 +75,6 @@ export function StationManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Ви впевнені, що хочете видалити цю станцію?')) return;
-
     try {
       await deleteStation(id);
       toast({ title: 'Успіх', description: 'Станцію видалено' });
@@ -122,22 +91,7 @@ export function StationManagement() {
 
   const handleEdit = (station: StationData) => {
     setEditingStation(station);
-    setFormData({
-      name: station.name,
-      code: station.code,
-      city: station.city,
-      country: station.country,
-    });
     setIsDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      code: '',
-      city: '',
-      country: 'Ukraine',
-    });
   };
 
   if (isLoading) {
@@ -161,92 +115,15 @@ export function StationManagement() {
               Створення, редагування та видалення залізничних станцій
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="h-4 w-4 mr-2" />
-                Додати станцію
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingStation ? 'Редагувати станцію' : 'Створити станцію'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingStation
-                    ? 'Оновіть інформацію про станцію'
-                    : 'Додайте нову залізничну станцію'}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Назва станції</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="Київ-Пасажирський"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="code">Код станції</Label>
-                  <Input
-                    id="code"
-                    value={formData.code}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        code: e.target.value.toUpperCase(),
-                      })
-                    }
-                    placeholder="KYV"
-                    required
-                    maxLength={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Місто</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    placeholder="Київ"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">Країна</Label>
-                  <Input
-                    id="country"
-                    value={formData.country}
-                    onChange={(e) =>
-                      setFormData({ ...formData, country: e.target.value })
-                    }
-                    placeholder="Ukraine"
-                    required
-                  />
-                </div>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Скасувати
-                  </Button>
-                  <Button type="submit">
-                    {editingStation ? 'Оновити' : 'Створити'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => {
+              setEditingStation(null);
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Додати станцію
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -281,19 +158,35 @@ export function StationManagement() {
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(station.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <DeleteConfirmDialog
+                    title="Видалити станцію?"
+                    description="Ви впевнені, що хочете видалити цю станцію? Цю дію неможливо скасувати.(Всі пов'язані розклади поїздів повинні бути видалені перед видаленням станції!!)"
+                    itemInfo={`${station.name} (${station.code}) - ${station.city}`}
+                    onConfirm={() => handleDelete(station.id)}
+                  />
                 </div>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
+
+      <StationDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleSubmit}
+        initialData={
+          editingStation
+            ? {
+                name: editingStation.name,
+                code: editingStation.code,
+                city: editingStation.city,
+                country: editingStation.country,
+              }
+            : undefined
+        }
+        editing={!!editingStation}
+      />
     </Card>
   );
 }

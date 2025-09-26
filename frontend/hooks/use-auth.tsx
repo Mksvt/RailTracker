@@ -38,16 +38,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get('token'); // Read from cookie
+      const token = Cookies.get('token'); 
       if (token) {
         try {
-          // Set token for api requests
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           const response = await api.get('/auth/me');
           setUser(response.data);
         } catch (error) {
           console.error('Auth check failed:', error);
-          Cookies.remove('token'); // Remove invalid token
+          Cookies.remove('token'); 
         }
       }
       setIsLoading(false);
@@ -60,9 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { access_token } = response.data;
-      Cookies.set('token', access_token, { expires: 7, secure: true }); // Set cookie
+      Cookies.set('token', access_token, { expires: 7, secure: true }); 
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      // After setting the token, fetch the user profile
       const userResponse = await api.get('/auth/me');
       setUser(userResponse.data);
       return {};
@@ -83,9 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fullName,
       });
       const { access_token } = response.data;
-      Cookies.set('token', access_token, { expires: 7, secure: true }); // Set cookie
+      Cookies.set('token', access_token, { expires: 7, secure: true }); 
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      // After setting the token, fetch the user profile
       const userResponse = await api.get('/auth/me');
       setUser(userResponse.data);
       return {};
@@ -95,10 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    Cookies.remove('token'); // Remove cookie
+    Cookies.remove('token'); 
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
-    // No need to call a backend endpoint for logout in this JWT setup
   };
 
   return (
