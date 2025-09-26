@@ -18,13 +18,13 @@ import { ProfileModule } from './profile/profile.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
+        url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: true, 
+        ssl:
+          configService.get<string>('NODE_ENV') === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
       }),
       inject: [ConfigService],
     }),
