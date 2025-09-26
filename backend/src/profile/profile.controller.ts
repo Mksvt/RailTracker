@@ -24,7 +24,7 @@ export class ProfileController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+
   @Get()
   findAll() {
     return this.profileService.findAll();
@@ -43,7 +43,7 @@ export class ProfileController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.profileService.remove(id);

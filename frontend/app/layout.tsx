@@ -10,7 +10,7 @@ import { AuthProvider } from '@/hooks/use-auth';
 export const metadata: Metadata = {
   title: 'RailTracker - Train Schedule',
   description: 'Modern train schedule application with real-time updates',
-  generator: 'v0.app',
+  generator: 'my.app',
 };
 
 export default function RootLayout({
